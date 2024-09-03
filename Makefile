@@ -48,4 +48,16 @@ print:
 	@echo $(DEPS)
 	@echo $(HEADERS)
 
-.PHONY: clean fclean re all
+test:
+	gcc $(SRC_FOLDER)/malloc.c
+
+stest:
+	gcc $(SRC_FOLDER)/malloc.c -g -fsanitize=address
+
+run: test
+	./a.out
+
+srun: stest
+	./a.out
+
+.PHONY: clean fclean re all print test run stest srun
