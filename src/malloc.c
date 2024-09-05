@@ -3,8 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include "types.h"
 
-#define MIN_ALLOCS_IN_PAGE	(100UL)
+#define MIN_ALLOCS_IN_PAGE	(256UL)
 
 #define TINY_MAX_ALLOC		(1UL << 5UL)
 #define SMALL_MAX_ALLOC		(1UL << 16UL)
@@ -12,45 +13,24 @@
 #define TINY_ZONE_SIZE		(MIN_ALLOCS_IN_PAGE * TINY_MAX_ALLOC)
 #define SMALL_ZONE_SIZE		(MIN_ALLOCS_IN_PAGE * SMALL_MAX_ALLOC)
 
-enum node_color {
-	RED_NODE,
-	BLACK_NODE,
-};
-
-typedef struct	red_black_tree_node_s {
-	enum node_color					color;
-	void							*data;
-	struct red_black_tree_node_s	*left;
-	struct red_black_tree_node_s	*right;
-	struct red_black_tree_node_s	*parent;
-}				red_black_tree_node_t;
-
-typedef red_black_tree_node_t node_t;
-
-typedef struct	allocation_data_s {
-	void						*address;
-	size_t						size;
-	struct allocation_data_s	*next;
-	struct allocation_data_s	*prev;
-}				allocation_data_t;
-
-typedef struct	zone_s {
-	size_t	size;
-	size_t	max_alloc;
-	node_t	*allocs;
-}				zone_t;
-
-typedef struct	alloc_data_s {
-	size_t page_size;
-	zone_t tiny;
-	zone_t small;
-}				alloc_data_t;
-
 alloc_data_t global_tracker;
 
-typedef struct	alloc_s {
+int red_black_rotate_left(node_t **root, node_t *target) {
+	/*
+		*root == target
+	*/
+	node_t *lvl_1;
+	node_t *lvl_2;
 
-}				alloc_t;
+	if (!root || !(lvl_1 = target->left) || !(lvl_2 = lvl_1->right)) {
+		return (1);
+	}
+
+	lvl_1->right = lvl_2->left;
+	lvl_2->left = lvl_1;
+	target->left = lvl_2;
+	return (0);
+}
 
 void init_zone(zone_t *zone, size_t size, size_t max_alloc) {
 	zone->max_alloc = max_alloc;
