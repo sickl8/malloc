@@ -1,5 +1,5 @@
-#define __USE_MISC
 #include <stddef.h>
+#define __USE_MISC
 #include <sys/mman.h>
 #include <stdio.h>
 #include <stdlib.h>

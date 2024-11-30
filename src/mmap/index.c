@@ -1,15 +1,11 @@
-#define __USE_MISC
 #include <stddef.h>
-#include <sys/mman.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#define __USE_MISC
+#include <sys/mman.h>
 #include "../index.h"
-
-#ifndef MAP_ANONYMOUS
-	#define MAP_ANONYMOUS 0x20
-#endif
 
 /*
  * return page size aligned length

@@ -1,71 +1,54 @@
-#ifndef __INDEX_H__
-#define __INDEX_H__
+#ifndef __SRC_INDEX_H__
+#define __SRC_INDEX_H__
 
 #include <stddef.h>
 #include "out.h"
+#include "defs.h"
+#include "types.h"
 #include "binary_tree/index.h"
 
 /* ============================ #DEFINE ============================ */
 
-#define MIN_ALLOCS_IN_ZONE				(128UL)
-
-#define TINY_BLOCK_SIZE					((1UL << 8UL) - sizeof(char)) // 2 ** 8 - s = 256 - s
-#define SMALL_BLOCK_SIZE				((1UL << 13UL) - sizeof(short)) // 2 ** 13 - s = 1024 * 8 = 8k - s
-#define LARGE_BLOCK_SIZE(__alloc__)		(sizeof(large_alloc_t) + __alloc__)
+#define SIZEOF_LARGE_ALLOC(__size__)	(sizeof(header_t) + (__size__))
 
 /* ============================ TYPES ============================ */
 
-typedef union	size_or_bf_u {
-	// bit-field to mark each block either as free or used
-	char	bf_free_blocks[MIN_ALLOCS_IN_ZONE / 8];
-	// large allocation size
-	size_t	size;
-}				size_or_bf_t;
+typedef node_t meta_t;
 
-typedef size_or_bf_t sbf_t;
-
-#define ____HOVER_OVER_ME sizeof(sbf_t);
-
-typedef enum	alloc_type_e {
-	TINY_ALLOC,
-	SMALL_ALLOC,
-	LARGE_ALLOC,
-}				alloc_type_t;
-
-typedef alloc_type_t type_t;
+#ifdef ____HOVER_OVER_ME
+#undef ____HOVER_OVER_ME
+#endif
+#define ____HOVER_OVER_ME sizeof(meta_t);
 
 typedef struct	tiny_alloc_s {
 	char			data[TINY_BLOCK_SIZE];
-	char			size;
+	tiny_size_t		size;
 }				tiny_alloc_t __attribute__ ((aligned (16)));
 
+#ifdef ____HOVER_OVER_ME
+#undef ____HOVER_OVER_ME
+#endif
 #define ____HOVER_OVER_ME sizeof(tiny_alloc_t);
-
-typedef struct	zone_meta_s {
-	// red-black tree nodes for log2(n) lookups
-	node_t	node;
-	// node type, small, tiny, or large
-	type_t	type;
-	// union of size and bit-field describing free blocks
-	sbf_t	meta;
-}				zone_meta_t;
-
-#define ____HOVER_OVER_ME sizeof(zone_meta_t);
-
-typedef zone_meta_t meta_t;
 
 typedef struct	tiny_zone_s {
 	meta_t			meta;
 	tiny_alloc_t	blocks[MIN_ALLOCS_IN_ZONE] __attribute__ ((aligned (16)));
 }				tiny_zone_t;
 
+#ifdef ____HOVER_OVER_ME
+#undef ____HOVER_OVER_ME
+#endif
 #define ____HOVER_OVER_ME sizeof(tiny_zone_t);
+
 
 typedef struct	small_alloc_s {
 	char			data[SMALL_BLOCK_SIZE];
-	unsigned short	size;
+	small_size_t	size;
 }				small_alloc_t __attribute__ ((aligned (16)));
 
+#ifdef ____HOVER_OVER_ME
+#undef ____HOVER_OVER_ME
+#endif
 #define ____HOVER_OVER_ME sizeof(small_alloc_t);
 
 typedef struct	small_zone_s {
@@ -73,20 +56,49 @@ typedef struct	small_zone_s {
 	small_alloc_t	blocks[MIN_ALLOCS_IN_ZONE] __attribute__ ((aligned (16)));
 }				small_zone_t;
 
+#ifdef ____HOVER_OVER_ME
+#undef ____HOVER_OVER_ME
+#endif
 #define ____HOVER_OVER_ME sizeof(small_zone_t);
 
-typedef struct	large_alloc_s {
+typedef struct	header_s {
 	meta_t			meta;
-	char			ptr[0];
-}				large_alloc_t;
+	char			ptr[0] __attribute__ ((aligned (16)));
+}				header_t;
 
-#define ____HOVER_OVER_ME sizeof(large_alloc_t);
+#ifdef ____HOVER_OVER_ME
+#undef ____HOVER_OVER_ME
+#endif
+#define ____HOVER_OVER_ME sizeof(header_t)
+
+typedef header_t large_alloc_t;
+
+typedef struct	alloc_s {
+	// user allocation to find
+	void	*ptr;
+	// user allocation size
+	size_t	alloc_size;
+	// real allocation size
+	size_t	real_size;
+	// pointer to allocation zone
+	meta_t	*meta;
+}				alloc_t;
+
+alloc_t find_alloc(node_t **root, void *alloc);
 
 typedef struct	g_data_s {
+	// total allocated by user, without book-keeping metadata
 	size_t			total_allocated;
-	tiny_zone_t		*tiny;
-	small_zone_t	*small;
-	large_alloc_t	*large;
+
+	// linked list of tiny zones with at least one free block
+	tiny_zone_t		*tiny_has_free_blocks;
+	// linked list of small zones with at least one free block
+	small_zone_t	*small_has_free_blocks;
+	// empty mmap'ed zones that will not be munmmap'ed to save on calls to mmap
+	meta_t			*totally_free_zone[3];
+
+	// root of red black tree containing all zones
+	meta_t			*alloc_tree;
 }				g_data_t;
 
 /* ============================ GLOBALS ============================ */
