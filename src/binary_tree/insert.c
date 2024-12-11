@@ -1,7 +1,6 @@
 #include "index.h"
 #include <stddef.h>
 /*
-
 REQUIREMENTS:
 1. Every node is either RED or BLACK
 2. The root node and all NULL nodes are BLACK
@@ -9,7 +8,6 @@ REQUIREMENTS:
 4. Every path from a given node to any of its descendant NULL nodes goes through the same number of BLACK nodes
 5. (Conclusion) If a node N has exactly one child, the child must be RED, because if it were BLACK, its NULL
    descendants would sit at a different BLACK depth than N's NULL child, violating requirement 4
-
 */
 
 INCLUDE_STATIC_HELPER_METHODS
@@ -21,7 +19,7 @@ void init_node(node_t *node, node_t *parent) {
 	node->parent = parent;
 }
 
-int	insert_node(node_t **root, node_t *node) {
+int	tree_insert_node(node_t **root, node_t *node) {
 	if (!root || !node) {
 		return (1);
 	}
@@ -52,11 +50,11 @@ int	insert_node(node_t **root, node_t *node) {
 			int node_dir = child_direction(node);
 			if (uncle_dir == node_dir) { // 3. uncle is black and in same direction of node
 				node = node->parent;
-				rotate_dir(parent_dir)(get_child_addr(root, gparent, node), node);
+				rotate(get_child_addr(root, gparent, node), node, parent_dir);
 			}
 			node->parent->color = BLACK;
 			gparent->color = RED;
-			rotate_dir(uncle_dir)(get_child_addr(root, gparent->parent, gparent), gparent);
+			rotate(get_child_addr(root, gparent->parent, gparent), gparent, uncle_dir);
 		}
 	}
 	(*root)->color = BLACK;

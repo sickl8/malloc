@@ -1,45 +1,21 @@
 #include "index.h"
 
-INCLUDE_STATIC_HELPER_METHODS
+int rotate(node_t **root, node_t *upper, node_dir_t dir) {
+	node_t *lower;
 
-int rotate_left(node_t **root, node_t *left) {
-	node_t *right;
-
-	if (!root || !left || !(right = left->right)) {
+	if (!root || !upper || !(lower = upper->children[!dir])) {
 		return (1);
 	}
 	#ifdef DEBUG
 		// printf("ROTATE LEFT\n");
 	#endif
-	root = get_child_addr(root, left->parent, left);
-	left->right = right->left;
-	if (left->right) {
-		left->right->parent = left;
+	upper->children[!dir] = lower->children[dir];
+	if (upper->children[!dir]) {
+		upper->children[!dir]->parent = upper;
 	}
-	right->left = left;
-	right->parent = left->parent;
-	*root = right;
-	left->parent = right;
-	return (0);
-}
-
-int rotate_right(node_t **root, node_t *right) {
-	node_t *left;
-
-	if (!root || !right || !(left = right->left)) {
-		return (1);
-	}
-	#ifdef DEBUG
-		// printf("ROTATE RIGHT\n");
-	#endif
-	root = get_child_addr(root, right->parent, right);
-	right->left = left->right;
-	if (right->left) {
-		right->left->parent = right;
-	}
-	left->right = right;
-	left->parent = right->parent;
-	*root = left;
-	right->parent = left;
+	lower->children[dir] = upper;
+	lower->parent = upper->parent;
+	*root = lower;
+	upper->parent = lower;
 	return (0);
 }

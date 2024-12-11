@@ -1,9 +1,10 @@
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#ifndef __USE_MISC
 #define __USE_MISC
+#endif
 #include <sys/mman.h>
 #include "../index.h"
 
@@ -20,22 +21,30 @@ size_t align_to_page_size(size_t len) {
 }
 
 /*
- * memory mapping with a length that is a multiple of the system page-size
+ * Create MAPping with the default arguments for an anonymous mapping
  */
-inline void *psm_mmap(void *__addr, size_t __len, int __prot, int __flags, int __fd, off_t __offset) {
-	return mmap(__addr, align_to_page_size(__len), __prot, __flags, __fd, __offset);
+void *cmap(size_t *size) {
+	size_t tmp = *size;
+	*size = align_to_page_size(*size);
+	// check for mmap fail or integer overflow due to align_to_page_size
+	if (*size < tmp) {
+		return MAP_FAILED;
+	}
+	global_tracker.mmap_calls++;
+	global_tracker.total_real_size += *size;
+	return mmap(NULL, *size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 }
 
 /*
- * allocate page size aligned size memory
+ * Create MAPping with the default arguments for an anonymous mapping, supports a hint
  */
-inline void *cmap(size_t size) {
-	return psm_mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-}
-
-/*
- * allocate page size aligned size memory 
- */
-inline void *cmap_hint(size_t size, void *hint) {
-	return psm_mmap(hint, size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+void *cmap_hint(size_t *size, void *hint) {
+	size_t tmp = *size;
+	*size = align_to_page_size(*size);
+	// check for mmap fail or integer overflow due to align_to_page_size
+	if (*size < tmp) {
+		return MAP_FAILED;
+	}
+	global_tracker.mmap_calls++;
+	return mmap(hint, *size, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 }

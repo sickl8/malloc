@@ -15,49 +15,41 @@ void transplant(node_t **root, node_t *u, node_t *v, node_t *s) {
 	v->parent = u->parent;
 }
 
-void fix_tree_after_remove(node_t **root, node_t *x, node_t *s) {
-	node_t *w = NULL;
-	while (x != *root && (x && x->color == BLACK)) {
-		int node_dir = child_direction(x);
-		w = x->parent->children[!node_dir];
-		if (w->color == RED) {
-			w->color = BLACK;
-			x->parent->color = RED;
-			rotate_dir(node_dir)(get_child_addr(root, x->parent->parent, x->parent), x->parent);
-			w = x->parent->children[!node_dir];
+void fix_tree_after_remove(node_t **root, node_t *to_fix) {
+	node_t *sibling = NULL;
+	while (to_fix != *root && (to_fix && to_fix->color == BLACK)) {
+		int node_dir = child_direction(to_fix);
+		sibling = to_fix->parent->children[!node_dir];
+		if (sibling->color == RED) {
+			sibling->color = BLACK;
+			to_fix->parent->color = RED;
+			rotate(get_child_addr(root, to_fix->parent->parent, to_fix->parent), to_fix->parent, node_dir);
+			sibling = to_fix->parent->children[!node_dir];
 		}
-		if ((!w->left || w->left->color == BLACK) && (!w->right || w->right->color == BLACK)) {
-			w->color = RED;
-			x = x->parent;
+		if ((!sibling->left || sibling->left->color == BLACK) && (!sibling->right || sibling->right->color == BLACK)) {
+			sibling->color = RED;
+			to_fix = to_fix->parent;
 		} else {
-			if (!w->children[!node_dir] || w->children[!node_dir]->color == BLACK) {
-				w->children[node_dir]->color = BLACK;
-				w->color = RED;
-				rotate_dir(!node_dir)(get_child_addr(root, w->parent, w), w);
-				w = x->parent->children[!node_dir];
+			if (!sibling->children[!node_dir] || sibling->children[!node_dir]->color == BLACK) {
+				sibling->children[node_dir]->color = BLACK;
+				sibling->color = RED;
+				rotate(get_child_addr(root, sibling->parent, sibling), sibling, !node_dir);
+				sibling = to_fix->parent->children[!node_dir];
 			}
-			w->color = x->parent->color;
-			x->parent->color = BLACK;
-			w->children[!node_dir]->color = BLACK;
-			rotate_dir(node_dir)(get_child_addr(root, x->parent->parent, x->parent), x->parent);
-			x = *root;
+			sibling->color = to_fix->parent->color;
+			to_fix->parent->color = BLACK;
+			sibling->children[!node_dir]->color = BLACK;
+			rotate(get_child_addr(root, to_fix->parent->parent, to_fix->parent), to_fix->parent, node_dir);
+			to_fix = *root;
 		}
 	}
-	if (x)
-		x->color = BLACK;
+	if (to_fix)
+		to_fix->color = BLACK;
 }
-
 
 node_t *leftmost_node(node_t *root) {
 	while (root->left) {
 		root = root->left;
-	}
-	return root;
-}
-
-node_t *rightmost_node(node_t *root) {
-	while (root->right) {
-		root = root->right;
 	}
 	return root;
 }
@@ -74,7 +66,7 @@ node_t *create_sentinel(node_t *sentinel, node_t *parent, node_dir_t child_dir) 
 	return ret;
 }
 
-node_t *remove_node(node_t **root, node_t *node) {
+node_t *tree_remove_node(node_t **root, node_t *node) {
 	node_t *orig = node;
 	node_color_t orig_color = orig->color;
 	node_t sentinel;
@@ -110,7 +102,7 @@ node_t *remove_node(node_t **root, node_t *node) {
 		orig->color = node->color;
 	}
 	if (orig_color == BLACK) {
-		fix_tree_after_remove(root, to_fix, &sentinel);
+		fix_tree_after_remove(root, to_fix);
 	}
 	if (to_fix && to_fix->parent && to_fix == &sentinel) {
 		*get_child_addr(root, to_fix->parent, to_fix) = NULL;

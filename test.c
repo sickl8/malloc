@@ -2,6 +2,7 @@
 #define DEBUG
 #endif
 #include "src/index.h"
+#include "src/binary_tree/index.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -145,26 +146,6 @@ void init_node(node_t *node, node_t *parent) {
 	node->parent = parent;
 }
 
-// static inline int (*rotate_dir(node_dir_t dir))(node_t **root, node_t *node) {
-// 	return dir == RIGHT ? rotate_right : rotate_left;
-// }
-
-// static inline int child_direction(node_t *node) {
-// 	#ifdef DEBUG
-// 		assert(node && (node->parent->left == node || node->parent->right == node));
-// 	#endif
-// 	return node == node->parent->left ? LEFT : RIGHT;
-// }
-// static inline node_t *get_uncle(node_t *g, node_t *p) {
-// 	// printf("g = %p, g->l = %p, g->r = %p, p = %p\n", g, g->left, g->right, p);
-// 	return (node_t*)(((size_t)g->left ^ (size_t)g->right) ^ (size_t)p);
-// }
-
-// static inline node_t **get_child_addr(node_t **r, node_t *p, node_t *n) {
-// 	return !p ? r : (p->left == n ? &p->left : &p->right);
-// }
-
-
 int	insert_node(node_t **root, node_t *node) {
 	// printf("here?\n");
 	// struct timeval b;
@@ -172,16 +153,33 @@ int	insert_node(node_t **root, node_t *node) {
 	if (!root || !node) {
 		return (1);
 	}
-	node_t **tracer = root, *_parent = NULL, *gparent = NULL, *uncle = NULL;
-	while (*tracer) {
-		_parent = *tracer;
-		if (node->data < (*tracer)->data) {
-			tracer = &(*tracer)->left;
-		} else {
-			tracer = &(*tracer)->right;
+
+
+	node_t *tracer = *root, *_parent = NULL, *gparent = NULL, *uncle = NULL;
+
+	int node_data = node->data;
+
+	// node_t **tracer = root, *_parent = NULL, *gparent = NULL, *uncle = NULL;
+	// while (*tracer) {
+	// 	_parent = *tracer;
+	// 	if (node->data < (*tracer)->data) {
+	// 		tracer = &(*tracer)->left;
+	// 	} else {
+	// 		tracer = &(*tracer)->right;
+	// 	}
+	// }
+	// *tracer = node;
+
+	if (tracer) {
+		while (tracer) {
+			_parent = tracer;
+			tracer = tracer->children[node_data > tracer->data];
 		}
+		_parent->children[node_data > _parent->data] = node;
+	} else {
+		*root = node;
 	}
-	*tracer = node;
+
 	init_node(node, _parent);
 
 	while (node->parent && node->parent->color == RED) {
@@ -199,11 +197,11 @@ int	insert_node(node_t **root, node_t *node) {
 			int node_dir = child_direction(node);
 			if (uncle_dir == node_dir) { // 3. uncle is black and in same direction of node
 				node = node->parent;
-				rotate_dir(parent_dir)(get_child_addr(root, gparent, node), node);
+				rotate(get_child_addr(root, gparent, node), node, parent_dir);
 			}
 			node->parent->color = BLACK;
 			gparent->color = RED;
-			rotate_dir(uncle_dir)(get_child_addr(root, gparent->parent, gparent), gparent);
+			rotate(get_child_addr(root, gparent->parent, gparent), gparent, uncle_dir);
 		}
 	}
 	(*root)->color = BLACK;
@@ -213,7 +211,7 @@ int	insert_node(node_t **root, node_t *node) {
 node_t *create_node(int data) {
 	node_t *ret = malloc(sizeof(node_t));
 	ret->data = data;
-	init_node(ret, NULL);
+	// init_node(ret, NULL);
 	// println_int(ret);
 	// println_int(ret->data);
 	// println_int(ret->left);
@@ -237,8 +235,7 @@ node_t *find_node(node_t *root, int data) {
 	return NULL;
 }
 
-int insert(node_t **root, int data) {
-	int ret = insert_node(root, create_node(data));
+static inline int insert(node_t **root, int data) {
 	// print_tree(*root);
 	// if (data % 10000 == 0 && check_red_black_tree(*root)) {
 	// 	printf("VIOLATION -------------------------\n");
@@ -246,13 +243,13 @@ int insert(node_t **root, int data) {
 	// if (!find_node(*root, data)) {
 	// 	printf("DID NOT INSERT %d -------------------------\n", data);
 	// }
-	return ret;
+	return insert_node(root, create_node(data));
 }
 
 void delete(node_t **root, int data) {
 	node_t *node = find_node(*root, data);
 	if (node) {
-		remove_node(root, node);
+		tree_remove_node(root, node);
 		// print_tree(*root);
 		// if (data % 10000 == 0 && check_red_black_tree(*root)) {
 		// 	printf("VIOLATION -------------------------\n");
@@ -308,18 +305,23 @@ int main(int ac, char **av) {
 	// 	printf("%d%s", data[i], i != itr - 1 ? ", " : "");
 	// }
 	// printf("]\n");
-	// shuffle(data, itr);
 	// // printf("shuffled: [");
-	// // for (int i = 0; i < itr; i++) {
-	// // 	printf("%d%s", data[i], i != itr - 1 ? ", " : "");
-	// // }
 	// // printf("]\n");
+
+	// shuffle(data, itr);
+	// printf("searching...\n");
+	// for (int i = 0; i < itr; i++) {
+	// 	if (!find_node(g_root, i)) {
+	// 		printf("did not find %d\n", i);
+	// 	}
+	// }
+	// printf("done searching...\n");
 	// printf("deleting...\n");
-	// // for (int i = 0; i < itr; i++) {
-	// // 	// printf("deleting: %u\n", data[i]);
-	// // 	delete(&g_root, data[i]);
-	// // }
-	// // print_tree(g_root);
+	// for (int i = 0; i < itr; i++) {
+	// 	delete(&g_root, data[i]);
+	// }
+	// print_tree(g_root);
+	
 	// for (int d = 0; d < itr; d++) {
 	// 	// printf("deleting: %u\n", g_root->data);
 	// 	// if (!(d % 1000)) {
