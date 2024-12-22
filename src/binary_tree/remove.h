@@ -1,9 +1,10 @@
 #include "index.h"
+#include "rotate.h"
+#include "init.h"
 #include <stddef.h>
+#include "static_helpers.h"
 
-INCLUDE_STATIC_HELPER_METHODS
-
-void transplant(node_t **root, node_t *u, node_t *v, node_t *s) {
+static void transplant(node_t **root, node_t *u, node_t *v, node_t *s) {
 	if (!u->parent || u->parent == s) {
 
 		*root = v;
@@ -15,7 +16,8 @@ void transplant(node_t **root, node_t *u, node_t *v, node_t *s) {
 	v->parent = u->parent;
 }
 
-void fix_tree_after_remove(node_t **root, node_t *to_fix) {
+
+static void fix_tree_after_remove(node_t **root, node_t *to_fix) {
 	node_t *sibling = NULL;
 	while (to_fix != *root && (to_fix && to_fix->color == BLACK)) {
 		int node_dir = child_direction(to_fix);
@@ -47,14 +49,14 @@ void fix_tree_after_remove(node_t **root, node_t *to_fix) {
 		to_fix->color = BLACK;
 }
 
-node_t *leftmost_node(node_t *root) {
+static node_t *leftmost_node(node_t *root) {
 	while (root->left) {
 		root = root->left;
 	}
 	return root;
 }
 
-node_t *create_sentinel(node_t *sentinel, node_t *parent, node_dir_t child_dir) {
+static node_t *create_sentinel(node_t *sentinel, node_t *parent, node_dir_t child_dir) {
 	// return parent->children[child_dir];
 	node_t *ret = parent->children[child_dir];
 	if (!ret) {
@@ -66,7 +68,7 @@ node_t *create_sentinel(node_t *sentinel, node_t *parent, node_dir_t child_dir) 
 	return ret;
 }
 
-node_t *tree_remove_node(node_t **root, node_t *node) {
+static node_t *tree_remove_node(node_t **root, node_t *node) {
 	node_t *orig = node;
 	node_color_t orig_color = orig->color;
 	node_t sentinel;
@@ -110,5 +112,8 @@ node_t *tree_remove_node(node_t **root, node_t *node) {
 	if (nodeWasLonelyRoot) {
 		*root = NULL;
 	}
+	node->left = NULL;
+	node->right = NULL;
+	node->parent = NULL;
 	return ret;
 }

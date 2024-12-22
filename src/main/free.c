@@ -1,6 +1,8 @@
 #include "../index.h"
 #include "../linked_list/index.h"
 #include "../binary_tree/index.h"
+#include "../binary_tree/remove.h"
+#include "../binary_tree/util.h"
 #include <stddef.h>
 #include <sys/mman.h>
 #include <pthread.h>
@@ -36,16 +38,17 @@ void free(void *ptr) {
 				break;
 			}
 			default: { // TINY_ALLOC || SMALL_ALLOC
-				if (zone_is_full(meta->bf_free_blocks)) { // zone will have a free block, add it to the appropriate linked list
+				if (zone_is_full(meta)) { // zone will have a free block, add it to the appropriate linked list
 					list_prepend_node((node_t**)&global_tracker.has_free_blocks[meta->type], meta);
 				}
-				set_block_availability(meta->bf_free_blocks, block.index, FREE_BLOCK);
-				if (meta->type == TINY_ALLOC) {
-					meta->tiny_blocks[block.index].size = 0UL;
-				} else { // meta->type == SMALL_ALLOC
-					meta->small_blocks[block.index].size = 0UL;
-				}
-				if (zone_is_empty(meta->bf_free_blocks)) {
+				remove_zone(&block, meta);
+				// block.tracker->size = 0;
+				// if (meta->type == TINY_ALLOC) {
+				// 	meta->tiny_blocks[block.index].size = 0UL;
+				// } else { // meta->type == SMALL_ALLOC
+				// 	meta->small_blocks[block.index].size = 0UL;
+				// }
+				if (zone_is_empty(meta)) {
 					remove_from_tree = true;
 					if (save_new_free_zone(meta) == -1) { // zone is empty and 3 free blocks are already available, unmap
 						should_be_unmapped = true;

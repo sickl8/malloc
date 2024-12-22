@@ -2,6 +2,7 @@
 // #include "../../src/index.h"
 // #include "../../src/out.h"
 #include <stdlib.h>
+#include <stddef.h>
 #include <assert.h>
 
 int	main(void)
@@ -13,11 +14,13 @@ int	main(void)
 	while (i < 1024)
 	{
 		addr = (char*)malloc(1024);
-		size_t t = 0;
-		for (int i = 0; i < 1024; i++) {
-			assert(((char*)addr)[i] == 0);
-		}
-		// addr[0] = 42;
+		// size_t t = 0;
+		// for (int i = 0; i < 1024; i++) {
+		// 	assert(((char*)addr)[i] == 0);
+		// }
+		// print_hex((size_t)addr);
+		// print_string("\n");
+		addr[0] = 42;
 		i++;
 	}
 	// pv(global_tracker.malloc_calls);

@@ -63,7 +63,7 @@ srun: stest
 run_correction:
 	@if [ "$$n" != "" ]; \
 		then echo ---------------- compiling tests/correction/test$$n.c"..." -------------------; \
-		gcc -g tests/correction/test$$n.c src/index.c src/main/*.c src/linked_list/*.c src/binary_tree/*.c src/mmap/*.c -o test$$n && \
+		gcc -g tests/correction/test$$n.c src/main/*.c src/mmap/*.c src/*.c -o test$$n && \
 		echo ---------------- running tests/correction/test$$n.c"..." -------------------; \
 		/usr/bin/time -v ./test$$n ; \
 		else echo n is an empty string \<make run_correction n\=NUM\>; fi

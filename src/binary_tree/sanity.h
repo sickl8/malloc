@@ -3,18 +3,18 @@
 #endif
 #include "index.h"
 
-int check_red_violation(node_t *node) {
+static int check_red_violation(node_t *node) {
     if ((node->left && node->left->color == RED) || (node->right && node->right->color == RED)) {
         return 0; // Red violation found
     }
     return 1; // No red violation
 }
 
-void print_violation(node_t *node, const char *violation) {
+static void print_violation(node_t *node, const char *violation) {
     printf("Violation at node with data %d: %s\n", node->data, violation);
 }
 
-int check_properties(node_t *node, int black_count, int *black_height) {
+static int check_properties(node_t *node, int black_count, int *black_height) {
     if (node == NULL) {
         // For a NULL (leaf), ensure black height consistency
         if (*black_height == 0) {
@@ -50,7 +50,7 @@ int check_properties(node_t *node, int black_count, int *black_height) {
     return 0; // No violations
 }
 
-int check_red_black_tree(node_t *root) {
+static int check_red_black_tree(node_t *root) {
     if (root == NULL) {
         return 0; // An empty tree is valid
     }

@@ -5,11 +5,12 @@
 #include "src/index.h"
 #include "src/mmap/index.h"
 #include "src/binary_tree/index.h"
+#include "src/binary_tree/util.h"
 #include "test.h"
 #include <unistd.h>
 
 void test_show_alloc_mem() {
-	int alloc[] = { 48847, 3725, 42, 84 };
+	int alloc[] = { 42, 84, 3725, 48847 };
 	for (int i = 0; i < sizeof_array(alloc); i++) {
 		void *ptr = malloc(alloc[i]);
 	}
@@ -79,19 +80,44 @@ void test_malloc_2() {
 	pv(global_tracker.free_calls);
 }
 
+
+void recursive_free(zone_t *zone, blocks_t *tracker) {
+	if (tracker) {
+		recursive_free(zone, tracker->left);
+		recursive_free(zone, tracker->right);
+		free(&zone->blocks[tracker->offset]);
+	}
+}
+
 void test_malloc_speed() {
-	for (int i = 0; i < 10000000; i++) {
+	int itr = 10000000;
+	pv(global_tracker.malloc_calls);
+	pv(global_tracker.free_calls);
+	for (int i = 0; i < itr; i++) {
 		if (i % 1000 == 0) {
-			printf("i = %d\n", i);
+			// printf("i = %d\n", i);
+			pv(i);
 		}
 		void *ptr = malloc(SMALL_ALLOC_SIZE);
 	}
-	for (int i = 0; i < 10000000; i++) {
+	for (int i = 0; i < itr; i++) {
 		if (i % 1000 == 0) {
-			printf("d = %d\n", i);
+			int d = i;
+			// printf("d = %d\n", i);
+			pv(d);
 		}
-		free(global_tracker.alloc_tree);
+		meta_t *meta = global_tracker.alloc_tree;
+		if (!meta) {
+			break;
+		}
+		if (meta->type == LARGE_ALLOC) {
+			free(meta->ptr);
+		} else {
+			recursive_free((zone_t*)meta, meta->used_blocks_tree);
+		}
 	}
+	pv(global_tracker.malloc_calls);
+	pv(global_tracker.free_calls);
 }
 
 int main(int ac, char **av) {
@@ -102,9 +128,9 @@ int main(int ac, char **av) {
 	}
 	srand(seed);
 	pv(seed);
-	run_test(test_malloc_speed);
+	// run_test(test_malloc_speed);
 	// run_test(test_malloc_tiny);
 	// run_test(test_malloc_2);
-	// run_test(test_show_alloc_mem);
+	run_test(test_show_alloc_mem);
 	pv(seed);
 }

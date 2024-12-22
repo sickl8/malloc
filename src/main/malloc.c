@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#define NODE_TYPE meta_t
 #include "../index.h"
 #include "../linked_list/index.h"
 #include "../binary_tree/index.h"
+#include "../binary_tree/insert.h"
 #include "../mmap/index.h"
 #include <string.h>
 
@@ -36,6 +38,10 @@ meta_t *get_free_zone(size_t *size) {
 	return NULL;
 }
 
+static inline int meta_cmp(meta_t *a, meta_t *b) {
+	return a < b;
+}
+
 static inline void *create_alloc(size_t size, alloc_type_t type) {
 	void *ret = NULL;
 	size_t minimum_zone_size = type == TINY_ALLOC ? sizeof(tiny_zone_t) : sizeof(small_zone_t);
@@ -44,13 +50,11 @@ static inline void *create_alloc(size_t size, alloc_type_t type) {
 	int index = 0;
 	if (global_tracker.has_free_blocks[type]) { // tiny zone available with one free block at least
 		meta = global_tracker.has_free_blocks[type];
-		if (zone_is_empty(meta->bf_free_blocks)) { // totally empty, will not be in the tree, readding it
-			tree_insert_node((node_t**)&global_tracker.alloc_tree, (node_t*)meta);
+		if (zone_is_empty(meta)) { // totally empty, will not be in the tree, readding it
+			tree_insert_node((node_t**)&global_tracker.alloc_tree, (node_t*)meta, meta_cmp);
 		}
-		index = get_index_first_free_block(meta->bf_free_blocks);
-		set_block_availability(meta->bf_free_blocks, index, USED_BLOCK);
-		get_set_block_data(index);
-		if (zone_is_full(meta->bf_free_blocks)) {
+		ret = allocate_zone(meta, size);
+		if (zone_is_full(meta)) {
 			list_pop_node((node_t**)&global_tracker.has_free_blocks[type]);
 		}
 	} else { // new zone created or resurected
@@ -64,9 +68,17 @@ static inline void *create_alloc(size_t size, alloc_type_t type) {
 		list_prepend_node((node_t**)&global_tracker.has_free_blocks[type], meta);
 		meta->real_size = real_zone_size;
 		meta->type = type;
-		set_block_availability(meta->bf_free_blocks, 0, USED_BLOCK);
-		get_set_block_data(0);
-		tree_insert_node((node_t**)&global_tracker.alloc_tree, (node_t*)meta);
+
+		size_t alloc_size = type == TINY_ALLOC ? sizeof(tiny_alloc_t) : sizeof(small_alloc_t);
+		blocks_t *free = &meta->trackers[0];
+		free->offset = 0;
+		free->size = alloc_size * ALLOCS_IN_ZONE;
+		meta->free_blocks_tree = free;
+		meta->free_count = 1;
+		
+		ret = allocate_zone(meta, (u16_t)size);
+
+		tree_insert_node((node_t**)&global_tracker.alloc_tree, (node_t*)meta, meta_cmp);
 	}
 	return ret;
 }
@@ -91,7 +103,7 @@ static inline void *create_large_alloc(size_t size) {
 	alloc->real_size = real_zone_size;
 	alloc->size = size;
 	alloc->type = LARGE_ALLOC;
-	tree_insert_node((node_t**)&global_tracker.alloc_tree, (node_t*)alloc);
+	tree_insert_node((node_t**)&global_tracker.alloc_tree, (node_t*)alloc, meta_cmp);
 	ret = alloc->ptr;
 	return ret;
 }

@@ -7,19 +7,23 @@
 #include "../defs.h"
 #include "../index.h"
 
-int rotate_left(node_t **root, node_t *left);
-int rotate_right(node_t **root, node_t *right);
-int rotate(node_t **root, node_t *upper, node_dir_t dir);
-void init_node(node_t *node, node_t *parent);
-int	tree_insert_node(node_t **root, node_t *node);
-node_t *tree_remove_node(node_t **root, node_t *node);
-void fix_tree_after_remove(node_t **root, node_t *node);
+#ifndef NODE_TYPE
+#define NODE_TYPE meta_t
+#endif
 
-int check_red_violation(node_t *node);
-void print_violation(node_t *node, const char *violation);
-int check_properties(node_t *node, int black_count, int *black_height);
-int check_red_black_tree(node_t *root);
-block_t find_alloc(node_t **root, void *alloc);
+typedef NODE_TYPE node_t;
+
+// static int rotate(node_t **root, node_t *upper, int dir);
+// static void init_node(node_t *node, node_t *parent);
+// static int	tree_insert_node(node_t **root, node_t *node);
+// static node_t *tree_remove_node(node_t **root, node_t *node);
+// static void fix_tree_after_remove(node_t **root, node_t *node);
+
+// static int check_red_violation(node_t *node);
+// static void print_violation(node_t *node, const char *violation);
+// static int check_properties(node_t *node, int black_count, int *black_height);
+// static int check_red_black_tree(node_t *root);
+// static block_t find_alloc(node_t **root, void *alloc);
 
 #ifdef DEBUG_ASSERT
 	#define __assert(...) assert(__VA_ARGS__)

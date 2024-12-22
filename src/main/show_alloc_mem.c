@@ -6,26 +6,6 @@ void print_bytes(size_t bytes) {
 	print_string(bytes - 1 ? " bytes" : " byte");
 }
 
-size_t print_tiny_alloc(meta_t *alloc) {
-	size_t ret = 0;
-	tiny_zone_t *zone = (tiny_zone_t*)alloc;
-	print_string("TINY : ");
-	print_hex((size_t)alloc);
-	print_string("\n");
-	for (int i = 0; i < ALLOCS_IN_ZONE; i++) {
-		if (zone->blocks[i].size) {
-			ret += zone->blocks[i].size;
-			print_hex((size_t)zone->blocks[i].data);
-			print_string(" - ");
-			print_hex((size_t)(zone->blocks[i].data + zone->blocks[i].size));
-			print_string(" : ");
-			print_bytes(zone->blocks[i].size);
-			print_string("\n");
-		}
-	}
-	return ret;
-}
-
 void print_block(size_t size, char *data) {
 	print_hex((size_t)data);
 	print_string(" - ");
@@ -33,6 +13,15 @@ void print_block(size_t size, char *data) {
 	print_string(" : ");
 	print_bytes(size);
 	print_string("\n");
+}
+
+void recursive_print_zones(zone_t *zone, blocks_t *tracker, size_t *size) {
+	if (tracker) {
+		recursive_print_zones(zone, tracker->left, size);
+		*size += tracker->size;
+		print_block(tracker->size, &zone->blocks[tracker->offset]);
+		recursive_print_zones(zone, tracker->right, size);
+	}
 }
 
 size_t print_alloc(meta_t *alloc) {
@@ -54,15 +43,16 @@ size_t print_alloc(meta_t *alloc) {
 	print_string(type_string);
 	print_hex((size_t)alloc);
 	print_string("\n");
-	for (int i = 0; i < ALLOCS_IN_ZONE; i++) {
-		int index = i * block_size;
-		char *data = &alloc->ptr[index];
-		size_t size = alloc->type == TINY_ALLOC ? *((tiny_size_t*)&alloc->ptr[index + size_offset]) : *((small_size_t*)&alloc->ptr[index + size_offset]);
-		if (size) {
-			ret += size;
-			print_block(size, data);
-		}
-	}
+	// for (int i = 0; i < ALLOCS_IN_ZONE; i++) {
+	// 	int index = i * block_size;
+	// 	char *data = &alloc->ptr[index];
+	// 	size_t size = alloc->type == TINY_ALLOC ? *((tiny_size_t*)&alloc->ptr[index + size_offset]) : *((small_size_t*)&alloc->ptr[index + size_offset]);
+	// 	if (size) {
+	// 		ret += size;
+	// 		print_block(size, data);
+	// 	}
+	// }
+	recursive_print_zones((zone_t*)alloc, alloc->used_blocks_tree, &ret);
 	return ret;
 }
 
