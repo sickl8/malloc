@@ -12,4 +12,10 @@
 
 #define sizeof_array(__arr__)	(sizeof(__arr__) / sizeof(*(__arr__)))
 
+#ifdef DEBUG
+#define PRINT_MINFLT() print_minflt(__FILE__, __LINE__)
+#else
+#define PRINT_MINFLT()
+#endif
+
 #endif

@@ -3,7 +3,7 @@
 #include "../binary_tree/index.h"
 #include "../binary_tree/remove.h"
 #include "../binary_tree/util.h"
-#include "../linked_list/index.h"
+#include "../linked_list/remove.h"
 #include <stddef.h>
 #include <sys/mman.h>
 
@@ -36,11 +36,8 @@ void *realloc(void *ptr, size_t size) {
 				meta->size = size;
 				return ptr;
 			}
-			blocks_t *tracker = f.tracker;
-			blocks_t *next = tracker->next;
-			if (meta->used_count < ALLOCS_IN_ZONE - 2) {
-
-			}
+			reallocate_zone(meta, f.tracker, size);
+			return ptr;
 		}
 		if (meta->type == LARGE_ALLOC) {
 			if (meta->real_size - sizeof(header_t) >= size) {

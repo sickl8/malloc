@@ -1,5 +1,6 @@
 #include "../index.h"
-#include "../linked_list/index.h"
+#include "../linked_list/prepend.h"
+#include "../linked_list/remove.h"
 #include "../binary_tree/index.h"
 #include "../binary_tree/remove.h"
 #include "../binary_tree/util.h"
@@ -8,7 +9,7 @@
 #include <pthread.h>
 
 int save_new_free_zone(meta_t *ptr) {
-	for (int i = 0; i < sizeof_array(global_tracker.totally_free_zone); i++) {
+	for (int i = 0; i < (int)sizeof_array(global_tracker.totally_free_zone); i++) {
 		if (!global_tracker.totally_free_zone[i]) {
 			global_tracker.totally_free_zone[i] = ptr;
 			return i;

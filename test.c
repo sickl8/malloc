@@ -3,6 +3,7 @@
 #endif
 #include "src/index.h"
 #include "src/binary_tree/index.h"
+#include "src/binary_tree/static_helpers.h"
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -10,8 +11,6 @@
 
 #define print_int(x) printf("%s = %d", #x, x)
 #define println_int(x) printf("%s = %ld\n", #x, (long)x)
-
-INCLUDE_STATIC_HELPER_METHODS
 
 int max(int a, int b) {
 	return a > b ? a : b;

@@ -216,6 +216,8 @@ typedef struct	g_data_s {
 	size_t free_calls;
 	// total real size allocated
 	size_t total_real_size;
+	// minor page faults
+	size_t minflt;
 }				g_data_t;
 
 /* ============================ GLOBALS ============================ */
@@ -236,7 +238,9 @@ void print_string(char *str);
 void print_number(size_t num);
 int critical_assert();
 blocks_t *get_first_free_tracking_block(meta_t *meta);
-void	*allocate_zone(meta_t *meta, u16_t size);
+void *allocate_zone(meta_t *meta, u16_t size);
 void remove_zone(block_t *block, meta_t *meta);
+void print_minflt(char *file, int line);
+void reallocate_zone(meta_t *meta, blocks_t *tracker, size_t size);
 
 #endif

@@ -4,15 +4,15 @@ endif
 
 NAME=libft_malloc.so
 SONAME=libft_malloc_$(HOSTTYPE).so
-OFLAGS=-Wall -Wextra -Werror -fPIC -g
+OFLAGS=-Wall -Wextra -Werror -DDEBUG -fPIC -g
 SOFLAGS=-shared
 CC=gcc
 
 SRC_FOLDER=src
 BUILD_FOLDER=build
-SRCS=$(wildcard $(SRC_FOLDER)/*.c)
+SRCS=$(wildcard $(SRC_FOLDER)/*.c) $(wildcard $(SRC_FOLDER)/*/*.c)
 OBJS=$(patsubst $(SRC_FOLDER)/%.c,$(BUILD_FOLDER)/%.o,$(SRCS))
-HEADERS=$(wildcard $(SRC_FOLDER)/*.h)
+HEADERS=$(wildcard $(SRC_FOLDER)/*.h) $(wildcard $(SRC_FOLDER)/*/*.h)
 DEPS=$(OBJS:$(BUILD_FOLDER)/%.o=$(BUILD_FOLDER)/%.d)
 
 all: $(NAME)
@@ -29,6 +29,7 @@ $(BUILD_FOLDER):
 -include $(DEPS)
 
 $(BUILD_FOLDER)/%.o: $(SRC_FOLDER)/%.c
+	@mkdir -p $$(dirname $@)
 	$(CC) $(OFLAGS) -c -o $@ $< -MMD
 
 $(HEADERS):
@@ -43,10 +44,10 @@ fclean: clean
 re: fclean all
 
 print:
-	@echo $(SRCS)
-	@echo $(OBJS)
-	@echo $(DEPS)
-	@echo $(HEADERS)
+	@echo 'SRCS='$(SRCS)
+	@echo 'OBJS='$(OBJS)
+	@echo 'DEPS='$(DEPS)
+	@echo 'HEADERS='$(HEADERS)
 
 test:
 	gcc $(SRC_FOLDER)/malloc.c
@@ -60,10 +61,10 @@ run: test
 srun: stest
 	./a.out
 
-run_correction:
+run_correction: $(NAME)
 	@if [ "$$n" != "" ]; \
 		then echo ---------------- compiling tests/correction/test$$n.c"..." -------------------; \
-		gcc -g tests/correction/test$$n.c src/main/*.c src/mmap/*.c src/*.c -o test$$n && \
+		gcc -DDEBUG tests/correction/test$$n.c -L. -lft_malloc -Wl,-rpath=. -o test$$n && \
 		echo ---------------- running tests/correction/test$$n.c"..." -------------------; \
 		/usr/bin/time -v ./test$$n ; \
 		else echo n is an empty string \<make run_correction n\=NUM\>; fi

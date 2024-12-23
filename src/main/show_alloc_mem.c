@@ -26,32 +26,9 @@ void recursive_print_zones(zone_t *zone, blocks_t *tracker, size_t *size) {
 
 size_t print_alloc(meta_t *alloc) {
 	size_t ret = 0;
-	size_t block_size = 0;
-	char *type_string = NULL;
-	int size_offset;
-	tiny_alloc_t *t;
-	small_alloc_t *s;
-	if (alloc->type == TINY_ALLOC) {
-		type_string = "TINY : ";
-		block_size = sizeof(tiny_alloc_t);
-		size_offset = block_size - sizeof(tiny_size_t);
-	} else { // SMALL_ALLOC
-		type_string = "SMALL : ";
-		block_size = sizeof(small_alloc_t);
-		size_offset = block_size - sizeof(small_size_t);
-	}
-	print_string(type_string);
+	print_string(alloc->type == TINY_ALLOC ? "TINY : " : "SMALL : ");
 	print_hex((size_t)alloc);
 	print_string("\n");
-	// for (int i = 0; i < ALLOCS_IN_ZONE; i++) {
-	// 	int index = i * block_size;
-	// 	char *data = &alloc->ptr[index];
-	// 	size_t size = alloc->type == TINY_ALLOC ? *((tiny_size_t*)&alloc->ptr[index + size_offset]) : *((small_size_t*)&alloc->ptr[index + size_offset]);
-	// 	if (size) {
-	// 		ret += size;
-	// 		print_block(size, data);
-	// 	}
-	// }
 	recursive_print_zones((zone_t*)alloc, alloc->used_blocks_tree, &ret);
 	return ret;
 }

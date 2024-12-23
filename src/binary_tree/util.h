@@ -3,7 +3,6 @@
 
 #include "index.h"
 #include "../index.h"
-#include "../proto.h"
 
 #define pv(x) { print_string(#x " = "); print_number(x); print_string("\n"); }
 
@@ -32,18 +31,7 @@ static block_t find_alloc(meta_t **root, void *alloc) {
 	meta_t **tracer = root;
 	meta_t *tmeta = NULL;
 	char *ptr = (char*)alloc;
-	while (tmeta = *tracer) {
-		size_t num = (size_t[]){
-			ALLOCS_IN_ZONE, // TINY_ALLOC
-			ALLOCS_IN_ZONE, // SMALL_ALLOC
-			1, // LARGE_ALLOC
-		}[tmeta->type];
-		size_t size_of_each = (size_t[]){
-			sizeof(tiny_alloc_t), // TINY_ALLOC
-			sizeof(small_alloc_t), // SMALL_ALLOC
-			tmeta->size // LARGE_ALLOC
-		}[tmeta->type];
-		size_t total_size = (tmeta->type == LARGE_ALLOC ? sizeof(header_t) : sizeof(zone_t)) + (size_of_each * num);
+	while ((tmeta = *tracer)) {
 		if (ptr < (char*)(*tracer)) {
 			tracer = &(*tracer)->left;
 		} else if (ptr > ((char*)(*tracer) + tmeta->real_size)) {
@@ -58,7 +46,7 @@ static block_t find_alloc(meta_t **root, void *alloc) {
 				}
 			} else {
 				blocks_t *tracker = NULL;
-				if (tracker = find_tracker((zone_t*)tmeta, &tmeta->used_blocks_tree, alloc)) {
+				if ((tracker = find_tracker((zone_t*)tmeta, &tmeta->used_blocks_tree, alloc))) {
 					ret.ptr = ptr;
 					ret.alloc_size = tracker->size;
 					ret.meta = tmeta;

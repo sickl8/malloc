@@ -128,9 +128,9 @@ int main(int ac, char **av) {
 	}
 	srand(seed);
 	pv(seed);
-	// run_test(test_malloc_speed);
+	run_test(test_malloc_speed);
 	// run_test(test_malloc_tiny);
 	// run_test(test_malloc_2);
-	run_test(test_show_alloc_mem);
+	// run_test(test_show_alloc_mem);
 	pv(seed);
 }
