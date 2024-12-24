@@ -14,6 +14,7 @@ SRCS=$(wildcard $(SRC_FOLDER)/*.c) $(wildcard $(SRC_FOLDER)/*/*.c)
 OBJS=$(patsubst $(SRC_FOLDER)/%.c,$(BUILD_FOLDER)/%.o,$(SRCS))
 HEADERS=$(wildcard $(SRC_FOLDER)/*.h) $(wildcard $(SRC_FOLDER)/*/*.h)
 DEPS=$(OBJS:$(BUILD_FOLDER)/%.o=$(BUILD_FOLDER)/%.d)
+DLINK=-L. -lft_malloc -Wl,-rpath=$$(pwd)
 
 all: $(NAME)
 
@@ -48,6 +49,7 @@ print:
 	@echo 'OBJS='$(OBJS)
 	@echo 'DEPS='$(DEPS)
 	@echo 'HEADERS='$(HEADERS)
+	@echo 'DLINK='$(DLINK)
 
 test:
 	gcc $(SRC_FOLDER)/malloc.c
@@ -64,7 +66,7 @@ srun: stest
 run_correction: $(NAME)
 	@if [ "$$n" != "" ]; \
 		then echo ---------------- compiling tests/correction/test$$n.c"..." -------------------; \
-		gcc -DDEBUG tests/correction/test$$n.c -L. -lft_malloc -Wl,-rpath=. -o test$$n && \
+		gcc -DDEBUG -g tests/correction/test$$n.c $(DLINK) -o test$$n && \
 		echo ---------------- running tests/correction/test$$n.c"..." -------------------; \
 		/usr/bin/time -v ./test$$n ; \
 		else echo n is an empty string \<make run_correction n\=NUM\>; fi

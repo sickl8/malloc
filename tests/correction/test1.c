@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <assert.h>
+#include "../../src/main/debug.h"
 
 int	main(void)
 {

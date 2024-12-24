@@ -240,7 +240,6 @@ int critical_assert();
 blocks_t *get_first_free_tracking_block(meta_t *meta);
 void *allocate_zone(meta_t *meta, u16_t size);
 void remove_zone(block_t *block, meta_t *meta);
-void print_minflt(char *file, int line);
 void reallocate_zone(meta_t *meta, blocks_t *tracker, size_t size);
 
 #endif

@@ -18,4 +18,6 @@
 #define PRINT_MINFLT()
 #endif
 
+#define pv(x) { print_string(#x " = "); print_number(x); print_string("\n"); }
+
 #endif
